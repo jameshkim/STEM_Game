@@ -1,6 +1,7 @@
 package com.stem.game;
 
 import java.util.Iterator;
+import java.util.Random;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
@@ -18,28 +19,33 @@ public class StemGame extends ApplicationAdapter {
 	SpriteBatch batch;
 	private OrthographicCamera camera;
 	
+//	Stop Signs
 	private Texture blankStop;
-	private Texture yellDiam;
+	
+//	Success images
 	private	Texture	blackCheck;
 	
+//	Obstacles images
+	private Texture yellDiam;
 	private Texture empRect;
 	
+//	Rectangles used to logically represent objects	
 	private Rectangle stopSign;
 	private	Rectangle obstacle;
+	private Rectangle blackCheckRect;
+	
 	private Vector3 touchPos;
 	
 	private Array<Rectangle> stopSigns;
-	
 	private Array<Rectangle> obstacles;
 
-	//	private long lastObstacles;
-	
+	//	private long snowFlakeTimes;
 	
 	@Override
 	public void create () {
 		blankStop = new Texture(Gdx.files.internal("blank_stop.png"));
-		empRect = new Texture(Gdx.files.internal("regrect.png"));
 		yellDiam = new Texture(Gdx.files.internal("yellow_diamond.png"));
+		empRect = new Texture(Gdx.files.internal("regrect.png"));
 		blackCheck  = new Texture(Gdx.files.internal("lvlcheckmark.png"));
 		
 		camera = new OrthographicCamera();
@@ -47,41 +53,54 @@ public class StemGame extends ApplicationAdapter {
 		batch = new SpriteBatch();
 		
 		stopSign = new Rectangle();
-		stopSign.x = 800 / 2 - 64 / 2;
-		stopSign.y = 20;
-		stopSign.width = 64;
-		stopSign.height = 64;
+		stopSign.x = 5;
+		stopSign.y = 5;
+		stopSign.width = 50;
+		stopSign.height = 50;
 		
 		obstacle = new Rectangle();
-		obstacle.x = 800 / 2 - 64 / 2;
-		obstacle.y = 20;
-		obstacle.width = 64;
-		obstacle.height = 64;
+		obstacle.x = 20;
+		obstacle.y = 50;
+		obstacle.width = 10;
+		obstacle.height = 10;
 		
-		batch.begin();
-		batch.draw(yellDiam, obstacle.x, obstacle.y);
-		batch.draw(blankStop, stopSign.x, stopSign.y);
-		batch.end();
+		blackCheckRect = new Rectangle();
+		blackCheckRect.x = 800 / 2 - 64 / 2;
+		blackCheckRect.y = 50;
+		blackCheckRect.width = 64;
+		blackCheckRect.height = 64;
 
 		stopSigns = new Array<Rectangle>();
-		spawnStopSigns();
-		
+		obstacles = new Array<Rectangle>();
+		Random randGen = new Random();
+		for (int i = 0; i < randGen.nextInt(10); i++) {
+			spawnStopSigns();
+			spawnObstacles();
+		}
 
 	}
 
 	@Override
 	public void render () {
-		Gdx.gl.glClearColor(1, 0, 0, 1);
+		Gdx.gl.glClearColor(1, 1, 1, 0);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
 		
 		camera.update();
 		batch.setProjectionMatrix(camera.combined);	
 		batch.begin();
-		batch.draw(blankStop, stopSign.x, stopSign.y);
 		for(Rectangle stopSignRect: stopSigns) {
-			batch.draw(blankStop, stopSignRect.x, stopSignRect.y);
+			batch.draw(blankStop, stopSignRect.x, stopSignRect.y, stopSignRect.getWidth(), stopSignRect.getHeight());
 		}
+		
+//		Random randGen = new Random();
+//		for(Rectangle obstacle: obstacles) {
+//			if (randGen.nextInt(10) > 5) {
+//				batch.draw(yellDiam, obstacle.x, obstacle.y, obstacle.getWidth(), obstacle.getHeight());
+//			} else {
+//				batch.draw(empRect, obstacle.x, obstacle.y, obstacle.getWidth(), obstacle.getHeight());
+//			}	
+//		}
 		batch.end();
 		
 		if(Gdx.input.isTouched()) {
@@ -90,10 +109,10 @@ public class StemGame extends ApplicationAdapter {
 	     	camera.unproject(touchPos);
 	     	if (touchPos.x > stopSign.getX() && touchPos.x < stopSign.getX() + stopSign.getWidth()) {
 	     		if (touchPos.y > stopSign.getY() && touchPos.y < stopSign.getY() + stopSign.getHeight()) {
-	     			
+	     			batch.draw(blackCheck, stopSign.x, stopSign.y, stopSign.getWidth(), stopSign.getHeight());
 	     		}
             }
-	     	stopSign.x = touchPos.x - 64 / 2;
+//	     	stopSign.x = touchPos.x - 64 / 2;
 		}			
 
 		
@@ -115,11 +134,21 @@ public class StemGame extends ApplicationAdapter {
 	      Rectangle blank_stop = new Rectangle();
 	      blank_stop.x = MathUtils.random(0, 800-64);
 	      blank_stop.y = MathUtils.random(0, 480-64);;
-	      blank_stop.width = 64;
-	      blank_stop.height = 64;
+	      blank_stop.width = 50;
+	      blank_stop.height = 50;
 	      stopSigns.add(blank_stop);
-	      lastStopSign = TimeUtils.nanoTime();
+//	      lastStopSign = TimeUtils.nanoTime();
    }
+	
+	private void spawnObstacles() {
+	      Rectangle empty_rect = new Rectangle();
+	      empty_rect.x = MathUtils.random(0, 800-64);
+	      empty_rect.y = MathUtils.random(0, 480-64);;
+	      empty_rect.width = MathUtils.random(40, 60);
+	      empty_rect.height = MathUtils.random(40, 60);
+	      obstacles.add(empty_rect);
+//	      lastStopSign = TimeUtils.nanoTime();
+ }
 	
 	public void dispose() {
 		blankStop.dispose();
