@@ -4,26 +4,26 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
 
-public class MainMenuScreen implements Screen {
+public class NextLevelScreen implements Screen {
 	
 	final StemGame game;
+	float gameTime;
 	OrthographicCamera camera;
+	private Texture retry;
+	private Texture next;
 	
-	public MainMenuScreen(final StemGame gam) {
+	public NextLevelScreen(final StemGame gam, float gameTime) {
         this.game = gam;
 
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 800, 480);
 
+		retry = new Texture(Gdx.files.internal("re_try.png"));
+		next = new Texture(Gdx.files.internal("next.png"));
     }
-
-	@Override
-	public void show() {
-		// TODO Auto-generated method stub
-
-	}
-
+	
 	@Override
 	public void render(float delta) {
 		// TODO Auto-generated method stub
@@ -32,10 +32,13 @@ public class MainMenuScreen implements Screen {
 
         camera.update();
         game.batch.setProjectionMatrix(camera.combined);
-
+        
+        float minutes = (float)Math.floor(gameTime / 60.0f);
+        float seconds = gameTime - minutes * 60.0f;
         game.batch.begin();
-        game.font.draw(game.batch, "Welcome to an App by the Se7en Wonders!!! ", 100, 150);
-        game.font.draw(game.batch, "Tap anywhere to begin!", 100, 100);
+		game.font.draw(game.batch, "Level Score : " + String.format("%.0fm%.0fs", minutes, seconds), 300, 480);
+//		game.batch.draw(retry, 500, 200, 100, 200);
+//		game.batch.draw(next, 500, 100, 100, 200);
         game.batch.end();
 
         if (Gdx.input.isTouched()) {
@@ -45,33 +48,39 @@ public class MainMenuScreen implements Screen {
 	}
 
 	@Override
+	public void show() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
 	public void resize(int width, int height) {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 	@Override
 	public void pause() {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 	@Override
 	public void resume() {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 	@Override
 	public void hide() {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 	@Override
 	public void dispose() {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 }

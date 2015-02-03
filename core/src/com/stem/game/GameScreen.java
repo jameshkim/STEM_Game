@@ -1,8 +1,11 @@
 package com.stem.game;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Random;
+import java.util.Set;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
@@ -43,7 +46,7 @@ public class GameScreen implements Screen {
 	
 	final StemGame game;
 	
-	public SpriteBatch batch;
+//	public SpriteBatch batch;
 	public BitmapFont font;
 	private OrthographicCamera camera;
 	
@@ -66,10 +69,14 @@ public class GameScreen implements Screen {
 	
 	private Array<screenObject> stopSigns;
 	private Array<screenObject> obstacles;
+	private Set<screenObject> successChk;
+	
+	
+	private float gameTime;
 	
 	
 	//	private long snowFlakeTimes;
-	private int	timeElapsing = 30;
+	private String	timeElapsing;
 	
 	public GameScreen(final StemGame gam) {
 		this.game = gam;
@@ -82,7 +89,7 @@ public class GameScreen implements Screen {
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, 800, 480);
 		
-		batch = new SpriteBatch();
+//		batch = new SpriteBatch();
 		
 		stopSign = new Rectangle();
 		stopSign.x = 5;
@@ -97,13 +104,15 @@ public class GameScreen implements Screen {
 		obstacle.height = 10;
 		
 		blackCheckRect = new Rectangle();
-		blackCheckRect.x = 800 / 2 - 64 / 2;
+		blackCheckRect.x = 800;
 		blackCheckRect.y = 50;
 		blackCheckRect.width = 64;
 		blackCheckRect.height = 64;
 
 		stopSigns = new Array<screenObject>();
 		obstacles = new Array<screenObject>();
+		successChk = new HashSet<screenObject>();
+		
 		Random randGen = new Random();
 		for (int i = 0; i < randGen.nextInt(10); i++) {
 			spawnStopSigns();
@@ -117,25 +126,34 @@ public class GameScreen implements Screen {
 //		Clears screen to make background white
 		Gdx.gl.glClearColor(1, 1, 1, 0);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
+		
+		gameTime += delta;
+        float minutes = (float)Math.floor(gameTime / 60.0f);
+        float seconds = gameTime - minutes * 60.0f;
+        timeElapsing = String.format("%.0fm%.0fs", minutes, seconds);
+        
 //		Tells camera to update matrices
 		camera.update();
 		
 		game.batch.setProjectionMatrix(camera.combined);	
+		
 		game.batch.begin();
 		game.font.draw(game.batch, "Time passed: " + timeElapsing, 0, 480);
 		for(screenObject stopSignRect: stopSigns) {
 			game.batch.draw(blankStop, stopSignRect.x, stopSignRect.y, stopSignRect.width, stopSignRect.height);
 		}
 		
-		Random randGen = new Random();
 		for(screenObject obstacle: obstacles) {
-			if (randGen.nextInt(10) > 5) {
-				batch.draw(yellDiam, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
-			} else {
-				batch.draw(empRect, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
-			}	
+			game.batch.draw(obstacle.img, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
 		}
+		
+		if (successChk.size() != 0) {
+			for (screenObject chkMark: successChk)
+			{
+	 			game.batch.draw(blackCheck, chkMark.x, chkMark.y, chkMark.width, chkMark.height);
+			}
+		}
+		
 		game.batch.end();
 		
 		
@@ -143,18 +161,33 @@ public class GameScreen implements Screen {
 		if(Gdx.input.isTouched()) {
 			touchPos = new Vector3();
 	      	touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
+ 			Gdx.app.log("ErrorCheckTag", "touchPos" + Gdx.input.getX() + " -- " +  Gdx.input.getY());
 	     	camera.unproject(touchPos);
-	     	
 	     	
 	     	for(screenObject stopSignRect: stopSigns) {
 		     	if (touchPos.x > stopSignRect.x && touchPos.x < stopSignRect.x + stopSignRect.width) {
-		     		if (touchPos.y > stopSignRect.y && touchPos.y < stopSignRect.x + stopSignRect.height) {
-		     			batch.draw(blackCheck, stopSignRect.x, stopSignRect.y, stopSignRect.width, stopSignRect.height);
+		     		if (touchPos.y > stopSignRect.x && touchPos.y < stopSignRect.x + stopSignRect.height) {
+		     			successChk.add(stopSignRect);
+
 		     		}
 	            }
 	     	}
+	    	
+
 //	     	stopSign.x = touchPos.x - 64 / 2;
 		}			
+		
+		for (screenObject stopSignRect: stopSigns) {
+ 			Gdx.app.log("ErrorCheckTag", "touchPos" + stopSignRect.x + " -- " +  stopSignRect.x);
+ 			Gdx.app.log("ErrorCheckTag", "touchPos" + stopSignRect.width + " -- " +  stopSignRect.height);
+		}
+		
+		Gdx.app.log("ErrorCheckTag", stopSigns.size + " " + successChk.size());
+		
+		if (stopSigns.size == successChk.size()) {
+            game.setScreen(new NextLevelScreen(game, gameTime));
+            dispose();
+        }
 
 		
 //		Use for snowflake level
@@ -174,8 +207,8 @@ public class GameScreen implements Screen {
 	private void spawnStopSigns() {
 	      screenObject blank_stop = new screenObject(new Rectangle());
 	      blank_stop.setTexture(blankStop);
-	      blank_stop.x = MathUtils.random(0, 800-64);
-	      blank_stop.y = MathUtils.random(0, 480-64);
+	      blank_stop.x = MathUtils.random(0, 800);
+	      blank_stop.y = MathUtils.random(0, 480);
 	      blank_stop.width = MathUtils.random(40, 60);
 	      blank_stop.height = MathUtils.random(40, 60);
 	      stopSigns.add(blank_stop);
@@ -192,8 +225,8 @@ public class GameScreen implements Screen {
 			obstacleImg.setTexture(empRect);
 		}
 		
-		obstacleImg.x = MathUtils.random(0, 800-64);
-	    obstacleImg.y = MathUtils.random(0, 480-64);
+		obstacleImg.x = MathUtils.random(0, 800);
+	    obstacleImg.y = MathUtils.random(0, 480);
 	    obstacleImg.width = MathUtils.random(40, 60);
 	    obstacleImg.height = MathUtils.random(40, 60);
 	    obstacles.add(obstacleImg);
@@ -206,7 +239,7 @@ public class GameScreen implements Screen {
 		empRect.dispose();
 		yellDiam.dispose();
 		blackCheck.dispose();
-		batch.dispose();
+		game.batch.dispose();
    }
 	
 	@Override

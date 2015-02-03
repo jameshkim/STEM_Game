@@ -24,5 +24,6 @@ public class StemGame extends Game {
     public void dispose() {
         batch.dispose();
         font.dispose();
+        super.dispose();
     }
 }
