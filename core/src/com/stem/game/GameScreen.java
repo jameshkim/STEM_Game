@@ -9,6 +9,7 @@ import java.util.Set;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -88,6 +89,7 @@ public class GameScreen implements Screen {
 		
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, 800, 480);
+
 		
 //		batch = new SpriteBatch();
 		
@@ -163,12 +165,11 @@ public class GameScreen implements Screen {
 	      	touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
  			Gdx.app.log("ErrorCheckTag", "touchPos" + Gdx.input.getX() + " -- " +  Gdx.input.getY());
 	     	camera.unproject(touchPos);
-	     	
+		    
 	     	for(screenObject stopSignRect: stopSigns) {
 		     	if (touchPos.x > stopSignRect.x && touchPos.x < stopSignRect.x + stopSignRect.width) {
-		     		if (touchPos.y > stopSignRect.x && touchPos.y < stopSignRect.x + stopSignRect.height) {
+		     		if (touchPos.y > stopSignRect.y && touchPos.y < stopSignRect.y + stopSignRect.height) {
 		     			successChk.add(stopSignRect);
-
 		     		}
 	            }
 	     	}
@@ -177,16 +178,16 @@ public class GameScreen implements Screen {
 //	     	stopSign.x = touchPos.x - 64 / 2;
 		}			
 		
-		for (screenObject stopSignRect: stopSigns) {
- 			Gdx.app.log("ErrorCheckTag", "touchPos" + stopSignRect.x + " -- " +  stopSignRect.x);
- 			Gdx.app.log("ErrorCheckTag", "touchPos" + stopSignRect.width + " -- " +  stopSignRect.height);
-		}
+//		for (screenObject stopSignRect: stopSigns) {
+// 			Gdx.app.log("ErrorCheckTag", "touchPos" + stopSignRect.x + " -- " +  stopSignRect.x);
+// 			Gdx.app.log("ErrorCheckTag", "touchPos" + stopSignRect.width + " -- " +  stopSignRect.height);
+//		}
 		
 		Gdx.app.log("ErrorCheckTag", stopSigns.size + " " + successChk.size());
 		
 		if (stopSigns.size == successChk.size()) {
             game.setScreen(new NextLevelScreen(game, gameTime));
-            dispose();
+            game.dispose();
         }
 
 		
@@ -244,6 +245,7 @@ public class GameScreen implements Screen {
 	
 	@Override
    	public void resize(int width, int height) {
+
    	}
 
 	@Override
@@ -263,6 +265,5 @@ public class GameScreen implements Screen {
 	@Override
 	public void hide() {
 		// TODO Auto-generated method stub
-		
 	}
 }
