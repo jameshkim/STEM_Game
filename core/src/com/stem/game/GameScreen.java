@@ -187,7 +187,7 @@ public class GameScreen implements Screen {
 		
 		if (stopSigns.size == successChk.size()) {
             game.setScreen(new NextLevelScreen(game, gameTime));
-            game.dispose();
+//            dispose();
         }
 
 		
@@ -208,8 +208,8 @@ public class GameScreen implements Screen {
 	private void spawnStopSigns() {
 	      screenObject blank_stop = new screenObject(new Rectangle());
 	      blank_stop.setTexture(blankStop);
-	      blank_stop.x = MathUtils.random(0, 800);
-	      blank_stop.y = MathUtils.random(0, 480);
+	      blank_stop.x = MathUtils.random(0, 800 - 60);
+	      blank_stop.y = MathUtils.random(0, 480 - 60);
 	      blank_stop.width = MathUtils.random(40, 60);
 	      blank_stop.height = MathUtils.random(40, 60);
 	      stopSigns.add(blank_stop);
@@ -226,8 +226,8 @@ public class GameScreen implements Screen {
 			obstacleImg.setTexture(empRect);
 		}
 		
-		obstacleImg.x = MathUtils.random(0, 800);
-	    obstacleImg.y = MathUtils.random(0, 480);
+		obstacleImg.x = MathUtils.random(0, 800 - 60);
+	    obstacleImg.y = MathUtils.random(0, 480 - 60);
 	    obstacleImg.width = MathUtils.random(40, 60);
 	    obstacleImg.height = MathUtils.random(40, 60);
 	    obstacles.add(obstacleImg);
