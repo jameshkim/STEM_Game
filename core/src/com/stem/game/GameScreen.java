@@ -20,6 +20,7 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.Screen;
 
 public class GameScreen implements Screen, InputProcessor {
@@ -57,15 +58,18 @@ public class GameScreen implements Screen, InputProcessor {
 	private Texture stop2;
 	private Texture stop3;
 	private Texture stop4;
+	private Texture trafficLight;
 	
 	
 	
 //	Success images
 	private	Texture	blackCheck;
+	private Texture smiley;
 	
 //	Obstacles images
 	private Texture yellDiam;
 	private Texture empRect;
+	private Texture snowFlake;
 	
 //	Rectangles used to logically represent objects	
 	private Rectangle stopSign;
@@ -78,9 +82,13 @@ public class GameScreen implements Screen, InputProcessor {
 	private Array<screenObject> stopSigns;
 	private Array<screenObject> obstacles;
 	private Set<screenObject> successChk;
+	private Array<Rectangle> snowflakes;
 		
 	private float gameTime;
 	final levelResult lvlRslt;
+	private int PULSE = 20;
+	private int fluctVal = 0;
+	private long lastDropTime;
 
 	
 	
@@ -99,6 +107,9 @@ public class GameScreen implements Screen, InputProcessor {
 		stop2 = new Texture(Gdx.files.internal("stop2.png"));
 		stop3 = new Texture(Gdx.files.internal("stop3.png"));
 		stop4 = new Texture(Gdx.files.internal("stop4.png"));
+		trafficLight = new Texture(Gdx.files.internal("trafficlight.png"));
+		snowFlake = new Texture(Gdx.files.internal("snowflake.png"));
+		smiley = new Texture(Gdx.files.internal("smiley.png"));
 		
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, 800, 480);
@@ -112,11 +123,18 @@ public class GameScreen implements Screen, InputProcessor {
 		stopSigns = new Array<screenObject>();
 		obstacles = new Array<screenObject>();
 		successChk = new HashSet<screenObject>();
-		
+		snowflakes = new Array<Rectangle>();
+
+
 		Random randGen = new Random();
 		for (int i = 0; i < randGen.nextInt(10) + 2; i++) {
 			spawnStopSigns();
+		}
+		for (int i = 0; i < randGen.nextInt(10) + 2; i++) {
 			spawnObstacles();
+			if  (8 < lvlRslt.gameLevel && lvlRslt.gameLevel <= 10) {
+				spawnSnowflakes();
+			}
 		}
 	}
 
@@ -132,6 +150,12 @@ public class GameScreen implements Screen, InputProcessor {
         float seconds = gameTime - minutes * 60.0f;
         timeElapsing = String.format("%.0fm%.0fs", minutes, seconds);
         
+		if  (8 < lvlRslt.gameLevel && lvlRslt.gameLevel <= 10) {
+	        if(TimeUtils.nanoTime() - lastDropTime > 1000000000) {
+	        	spawnSnowflakes();
+	        }
+		}
+        
 //		Tells camera to update matrices
 		camera.update();
 		
@@ -144,17 +168,37 @@ public class GameScreen implements Screen, InputProcessor {
 		}
 		
 		for(screenObject obstacle: obstacles) {
-			game.batch.draw(obstacle.img, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+			if (4 < lvlRslt.gameLevel && lvlRslt.gameLevel <= 6 && obstacle.img == yellDiam) {
+				obstacle.width = fluctValue(obstacle.width);
+				obstacle.height = fluctValue(obstacle.height);
+				game.batch.draw(obstacle.img, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+			} else {
+				game.batch.draw(obstacle.img, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+			}
 		}
 		
 		if (successChk.size() != 0) {
 			for (screenObject chkMark: successChk)
 			{
-	 			game.batch.draw(blackCheck, chkMark.x, chkMark.y, chkMark.width, chkMark.height);
+				if  (6 < lvlRslt.gameLevel && lvlRslt.gameLevel <= 8) {
+					game.batch.draw(smiley, chkMark.x, chkMark.y, chkMark.width, chkMark.height);
+				} else {
+		 			game.batch.draw(blackCheck, chkMark.x, chkMark.y, chkMark.width, chkMark.height);
+				}
 			}
 		}
 		
+		if  (8 < lvlRslt.gameLevel && lvlRslt.gameLevel <= 10) {
+			for(Rectangle sflake: snowflakes) {
+				game.batch.draw(snowFlake, sflake.x, sflake.y);
+			}
+		}
+		
+		
 		game.batch.end();
+		Gdx.app.log("ErrorCheckTag", "Fluct: " + fluctVal);
+
+		fluctVal++;
 		
 //		if(Gdx.input.isTouched()) {
 //	
@@ -172,27 +216,23 @@ public class GameScreen implements Screen, InputProcessor {
 //	     	}
 //		}
 	    	
-
-//	     	stopSign.x = touchPos.x - 64 / 2;
+		if  (8 < lvlRslt.gameLevel && lvlRslt.gameLevel <= 10) {
+			Iterator<Rectangle> iter = snowflakes.iterator();
+			while(iter.hasNext()) {
+				Rectangle sflake = iter.next();
+				sflake.y -= 200 * Gdx.graphics.getDeltaTime();
+				sflake.x = fluctValue(sflake.x);
+				if(sflake.y + 64 < 0) iter.remove();
+		   	}
+		}
 					
-		
-//		for (screenObject stopSignRect: stopSigns) {
-// 			Gdx.app.log("ErrorCheckTag", "touchPos" + stopSignRect.x + " -- " +  stopSignRect.x);
-// 			Gdx.app.log("ErrorCheckTag", "touchPos" + stopSignRect.width + " -- " +  stopSignRect.height);
-//		}
-		
+	
 		if (stopSigns.size != 0 && stopSigns.size == successChk.size()) {
-			Gdx.app.log("ErrorCheckTag", "Game Next Leve");
 			lvlRslt.setGameTime(gameTime);
             game.setScreen(new NextLevelScreen(game, lvlRslt));	            	
         }
 		
 
-		
-//		Use for snowflake level
-//		if(TimeUtils.nanoTime() - lastDropTime > 1000000000)  {
-//			spawnRaindrop();
-//		}
 		
 //		Use this to make snowflakes move
 //		Iterator<Rectangle> iter = raindrops.iterator();
@@ -206,28 +246,35 @@ public class GameScreen implements Screen, InputProcessor {
 	private void spawnStopSigns() {
 	      screenObject stopsign = new screenObject(new Rectangle());
 	      Random randomizer = new Random();
+
+	      stopsign.x = MathUtils.random(0, 800 - 80);
+	      stopsign.y = MathUtils.random(0, 480 - 80);
+	      stopsign.width = MathUtils.random(60, 80);
+	      stopsign.height = MathUtils.random(60, 80);
 	      
 	      if (lvlRslt.gameLevel <= 2) {
 	    	  stopsign.setTexture(blankStop);
 	      } else if  (2 < lvlRslt.gameLevel && lvlRslt.gameLevel <= 4) {
 	    	  Texture randomSign = lvlTwoStopSigns.get(randomizer.nextInt(lvlTwoStopSigns.size()));
 	    	  stopsign.setTexture(randomSign);
+	      } else if  (6 < lvlRslt.gameLevel && lvlRslt.gameLevel <= 8) {
+	    	  stopsign.setTexture(trafficLight);
+		      stopsign.width = MathUtils.random(70, 90);
+		      stopsign.height = MathUtils.random(70, 90);
 	      } else {
 	    	  stopsign.setTexture(stop4);
 	      }
-	      stopsign.x = MathUtils.random(0, 800 - 80);
-	      stopsign.y = MathUtils.random(0, 480 - 80);
-	      stopsign.width = MathUtils.random(60, 80);
-	      stopsign.height = MathUtils.random(60, 80);
 	      stopSigns.add(stopsign);
 //	      lastStopSign = TimeUtils.nanoTime();
    }
+	
+
 	
 	private void spawnObstacles() {
 		screenObject obstacleImg = new screenObject(new Rectangle());
 		Random randGen = new Random();
 		
-		if (randGen.nextInt(6) > 3) {
+		if (randGen.nextInt(6) > 2) {
 			obstacleImg.setTexture(yellDiam);
 		} else {
 			obstacleImg.setTexture(empRect);
@@ -235,12 +282,38 @@ public class GameScreen implements Screen, InputProcessor {
 		
 		obstacleImg.x = MathUtils.random(0, 800 - 60);
 	    obstacleImg.y = MathUtils.random(0, 480 - 60);
-	    obstacleImg.width = MathUtils.random(40, 60);
-	    obstacleImg.height = MathUtils.random(40, 60);
+	    obstacleImg.width = MathUtils.random(50, 70);
+	    obstacleImg.height = MathUtils.random(50, 70);
 	    obstacles.add(obstacleImg);
 	    
 //	      lastStopSign = TimeUtils.nanoTime();
  }
+	
+	private float fluctValue(float val) {
+		if (fluctVal < PULSE) {
+			return (val + 1);
+		} else if (fluctVal == PULSE) {
+			PULSE *= -1;
+			return (val + 1);
+		} else {
+			if ((fluctVal % 60) == 0) {
+				fluctVal = PULSE;
+				PULSE *= -1;
+			}
+			return (val - 1);
+		}
+	}
+	
+	private void spawnSnowflakes() {
+	      Rectangle sflake = new Rectangle();
+	      sflake.x = MathUtils.random(0, 800-60);
+	      sflake.y = 480;
+	      sflake.width = 50;
+	      sflake.height = 50;
+	      snowflakes.add(sflake);
+	      lastDropTime = TimeUtils.nanoTime();
+	   }
+	
 	
 	public void dispose() {
 		blankStop.dispose();
@@ -248,6 +321,13 @@ public class GameScreen implements Screen, InputProcessor {
 		yellDiam.dispose();
 		blackCheck.dispose();
 		game.batch.dispose();
+		stop1.dispose(); 
+		stop2.dispose(); 
+		stop3.dispose(); 
+		stop4.dispose(); 
+		trafficLight.dispose(); 
+		snowFlake.dispose();
+		smiley.dispose(); 
    }
 	
 	@Override
