@@ -1,5 +1,7 @@
 package com.stem.game;
 
+
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
@@ -13,15 +15,22 @@ public class NextLevelScreen implements Screen {
 	OrthographicCamera camera;
 	private Texture retry;
 	private Texture next;
+	private float totalTime;
+	final levelResult lvlRslt;
+
 	
-	public NextLevelScreen(final StemGame gam, float gameTime) {
+	public NextLevelScreen(final StemGame gam, levelResult lvlRsltInstance) {
         this.game = gam;
+        this.lvlRslt = lvlRsltInstance;
 
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 800, 480);
 
 		retry = new Texture(Gdx.files.internal("re_try.png"));
 		next = new Texture(Gdx.files.internal("next.png"));
+
+		totalTime = 0;
+		
     }
 	
 	@Override
@@ -33,17 +42,25 @@ public class NextLevelScreen implements Screen {
         camera.update();
         game.batch.setProjectionMatrix(camera.combined);
         
-        float minutes = (float)Math.floor(gameTime / 60.0f);
-        float seconds = gameTime - minutes * 60.0f;
+		Gdx.app.log("ErrorCheckTag", "" + lvlRslt.gameTime);
+
+        float minutes = (float)Math.floor(lvlRslt.gameTime / 60.0f);
+        float seconds = lvlRslt.gameTime - minutes * 60.0f;
         game.batch.begin();
-		game.font.draw(game.batch, "Level Score : " + String.format("%.0fm%.0fs", minutes, seconds), 300, 480);
+		game.tapFont.draw(game.batch, "Level : " + lvlRslt.gameLevel, 190, 325);
+		game.tapFont.draw(game.batch, "Level Score : " + String.format("%.0fm%.0fs", minutes, seconds), 190, 250);
 //		game.batch.draw(retry, 500, 200, 100, 200);
 //		game.batch.draw(next, 500, 100, 100, 200);
         game.batch.end();
 
-        if (Gdx.input.isTouched()) {
-            game.setScreen(new GameScreen(game));
-            dispose();
+        totalTime += delta;
+        if(totalTime > 1.0f) {
+        
+	        if (Gdx.input.isTouched()) {			
+	        	lvlRslt.setLvl(lvlRslt.gameLevel + 1);
+	            game.setScreen(new GameScreen(game, lvlRslt));
+	            dispose();
+	        }
         }
 	}
 

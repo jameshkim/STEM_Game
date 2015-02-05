@@ -19,10 +19,9 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.Screen;
 
-public class GameScreen implements Screen {
+public class GameScreen implements Screen, InputProcessor {
 	
 	static class screenObject {
 		public Rectangle objPosit;
@@ -71,16 +70,18 @@ public class GameScreen implements Screen {
 	private Array<screenObject> stopSigns;
 	private Array<screenObject> obstacles;
 	private Set<screenObject> successChk;
-	
-	
+		
 	private float gameTime;
+	final levelResult lvlRslt;
+
 	
 	
 	//	private long snowFlakeTimes;
 	private String	timeElapsing;
 	
-	public GameScreen(final StemGame gam) {
+	public GameScreen(final StemGame gam, final levelResult lvlRsltInstance) {
 		this.game = gam;
+		this.lvlRslt = lvlRsltInstance;
 		
 		blankStop = new Texture(Gdx.files.internal("blank_stop.png"));
 		yellDiam = new Texture(Gdx.files.internal("yellow_diamond.png"));
@@ -89,7 +90,6 @@ public class GameScreen implements Screen {
 		
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, 800, 480);
-
 		
 //		batch = new SpriteBatch();
 		
@@ -116,7 +116,7 @@ public class GameScreen implements Screen {
 		successChk = new HashSet<screenObject>();
 		
 		Random randGen = new Random();
-		for (int i = 0; i < randGen.nextInt(10); i++) {
+		for (int i = 0; i < randGen.nextInt(10) + 2; i++) {
 			spawnStopSigns();
 			spawnObstacles();
 		}
@@ -130,7 +130,7 @@ public class GameScreen implements Screen {
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		
 		gameTime += delta;
-        float minutes = (float)Math.floor(gameTime / 60.0f);
+        float minutes = (float) Math.floor(gameTime / 60.0f);
         float seconds = gameTime - minutes * 60.0f;
         timeElapsing = String.format("%.0fm%.0fs", minutes, seconds);
         
@@ -140,7 +140,7 @@ public class GameScreen implements Screen {
 		game.batch.setProjectionMatrix(camera.combined);	
 		
 		game.batch.begin();
-		game.font.draw(game.batch, "Time passed: " + timeElapsing, 0, 480);
+		game.byFont.draw(game.batch, "Time passed: " + timeElapsing, 0, 480);
 		for(screenObject stopSignRect: stopSigns) {
 			game.batch.draw(blankStop, stopSignRect.x, stopSignRect.y, stopSignRect.width, stopSignRect.height);
 		}
@@ -158,37 +158,37 @@ public class GameScreen implements Screen {
 		
 		game.batch.end();
 		
-		
-//		Process user input		
-		if(Gdx.input.isTouched()) {
-			touchPos = new Vector3();
-	      	touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
- 			Gdx.app.log("ErrorCheckTag", "touchPos" + Gdx.input.getX() + " -- " +  Gdx.input.getY());
-	     	camera.unproject(touchPos);
-		    
-	     	for(screenObject stopSignRect: stopSigns) {
-		     	if (touchPos.x > stopSignRect.x && touchPos.x < stopSignRect.x + stopSignRect.width) {
-		     		if (touchPos.y > stopSignRect.y && touchPos.y < stopSignRect.y + stopSignRect.height) {
-		     			successChk.add(stopSignRect);
-		     		}
-	            }
-	     	}
+//		if(Gdx.input.isTouched()) {
+//	
+//			touchPos = new Vector3();
+//	      	touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
+//				Gdx.app.log("ErrorCheckTag", "touchPos" + Gdx.input.getX() + " -- " +  Gdx.input.getY());
+//	     	camera.unproject(touchPos);
+//		    
+//	     	for(screenObject stopSignRect: stopSigns) {
+//		     	if (touchPos.x > stopSignRect.x && touchPos.x < stopSignRect.x + stopSignRect.width) {
+//		     		if (touchPos.y > stopSignRect.y && touchPos.y < stopSignRect.y + stopSignRect.height) {
+//		     			successChk.add(stopSignRect);
+//		     		}
+//	            }
+//	     	}
+//		}
 	    	
 
 //	     	stopSign.x = touchPos.x - 64 / 2;
-		}			
+					
 		
 //		for (screenObject stopSignRect: stopSigns) {
 // 			Gdx.app.log("ErrorCheckTag", "touchPos" + stopSignRect.x + " -- " +  stopSignRect.x);
 // 			Gdx.app.log("ErrorCheckTag", "touchPos" + stopSignRect.width + " -- " +  stopSignRect.height);
 //		}
 		
-		Gdx.app.log("ErrorCheckTag", stopSigns.size + " " + successChk.size());
-		
-		if (stopSigns.size == successChk.size()) {
-            game.setScreen(new NextLevelScreen(game, gameTime));
-//            dispose();
+		if (stopSigns.size != 0 && stopSigns.size == successChk.size()) {
+			Gdx.app.log("ErrorCheckTag", "Game Next Leve");
+			lvlRslt.setGameTime(gameTime);
+            game.setScreen(new NextLevelScreen(game, lvlRslt));	            	
         }
+		
 
 		
 //		Use for snowflake level
@@ -208,10 +208,10 @@ public class GameScreen implements Screen {
 	private void spawnStopSigns() {
 	      screenObject blank_stop = new screenObject(new Rectangle());
 	      blank_stop.setTexture(blankStop);
-	      blank_stop.x = MathUtils.random(0, 800 - 60);
-	      blank_stop.y = MathUtils.random(0, 480 - 60);
-	      blank_stop.width = MathUtils.random(40, 60);
-	      blank_stop.height = MathUtils.random(40, 60);
+	      blank_stop.x = MathUtils.random(0, 800 - 80);
+	      blank_stop.y = MathUtils.random(0, 480 - 80);
+	      blank_stop.width = MathUtils.random(60, 80);
+	      blank_stop.height = MathUtils.random(60, 80);
 	      stopSigns.add(blank_stop);
 //	      lastStopSign = TimeUtils.nanoTime();
    }
@@ -259,11 +259,75 @@ public class GameScreen implements Screen {
 	@Override
 	public void show() {
 		// TODO Auto-generated method stub
-		
+		Gdx.input.setInputProcessor(this);
 	}
 
 	@Override
 	public void hide() {
 		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public boolean keyDown(int keycode) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean keyUp(int keycode) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean keyTyped(char character) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+		// TODO Auto-generated method stub
+//		Process user input		
+		touchPos = new Vector3();
+      	touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
+		Gdx.app.log("ErrorCheckTag", "touchPos" + Gdx.input.getX() + " -- " +  Gdx.input.getY());
+     	camera.unproject(touchPos);
+	    
+     	for(screenObject stopSignRect: stopSigns) {
+	     	if (touchPos.x > stopSignRect.x && touchPos.x < stopSignRect.x + stopSignRect.width) {
+	     		if (touchPos.y > stopSignRect.y && touchPos.y < stopSignRect.y + stopSignRect.height) {
+	     			successChk.add(stopSignRect);
+	     		}
+            }
+     	}
+     	
+     	
+	
+		return false;
+	}
+
+	@Override
+	public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean touchDragged(int screenX, int screenY, int pointer) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean mouseMoved(int screenX, int screenY) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean scrolled(int amount) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }

@@ -8,10 +8,12 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 public class MainMenuScreen implements Screen {
 	
 	final StemGame game;
+	final levelResult lvlRslt;
 	OrthographicCamera camera;
 	
 	public MainMenuScreen(final StemGame gam) {
         this.game = gam;
+        this.lvlRslt = new levelResult();
 
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 800, 480);
@@ -34,12 +36,13 @@ public class MainMenuScreen implements Screen {
         game.batch.setProjectionMatrix(camera.combined);
 
         game.batch.begin();
-        game.font.draw(game.batch, "Welcome to an App by the Se7en Wonders!!! ", 100, 150);
-        game.font.draw(game.batch, "Tap anywhere to begin!", 100, 100);
+        game.titleFont.draw(game.batch, "Cognitive Constructor", 190, 325);
+        game.byFont.draw(game.batch, "by the Se7en Wonders", 290, 250);
+        game.tapFont.draw(game.batch, "Tap anywhere to begin!", 240, 175);
         game.batch.end();
 
         if (Gdx.input.isTouched()) {
-            game.setScreen(new GameScreen(game));
+            game.setScreen(new GameScreen(game, lvlRslt));
             dispose();
         }
 	}
