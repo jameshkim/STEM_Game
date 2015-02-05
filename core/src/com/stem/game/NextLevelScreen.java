@@ -31,6 +31,7 @@ public class NextLevelScreen implements Screen {
 
 		totalTime = 0;
 		
+		
     }
 	
 	@Override
@@ -99,5 +100,8 @@ public class NextLevelScreen implements Screen {
 		// TODO Auto-generated method stub
 		
 	}
+
+	
+	
 
 }

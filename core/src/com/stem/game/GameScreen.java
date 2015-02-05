@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
@@ -52,6 +53,12 @@ public class GameScreen implements Screen, InputProcessor {
 	
 //	Stop Signs
 	private Texture blankStop;
+	private Texture stop1;
+	private Texture stop2;
+	private Texture stop3;
+	private Texture stop4;
+	
+	
 	
 //	Success images
 	private	Texture	blackCheck;
@@ -67,6 +74,7 @@ public class GameScreen implements Screen, InputProcessor {
 	
 	private Vector3 touchPos;
 	
+	List<Texture> lvlTwoStopSigns = new ArrayList<Texture>();
 	private Array<screenObject> stopSigns;
 	private Array<screenObject> obstacles;
 	private Set<screenObject> successChk;
@@ -87,30 +95,20 @@ public class GameScreen implements Screen, InputProcessor {
 		yellDiam = new Texture(Gdx.files.internal("yellow_diamond.png"));
 		empRect = new Texture(Gdx.files.internal("regrect.png"));
 		blackCheck  = new Texture(Gdx.files.internal("lvlcheckmark.png"));
+		stop1 = new Texture(Gdx.files.internal("stop1.png"));
+		stop2 = new Texture(Gdx.files.internal("stop2.png"));
+		stop3 = new Texture(Gdx.files.internal("stop3.png"));
+		stop4 = new Texture(Gdx.files.internal("stop4.png"));
 		
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, 800, 480);
 		
 //		batch = new SpriteBatch();
-		
-		stopSign = new Rectangle();
-		stopSign.x = 5;
-		stopSign.y = 5;
-		stopSign.width = 50;
-		stopSign.height = 50;
-		
-		obstacle = new Rectangle();
-		obstacle.x = 20;
-		obstacle.y = 50;
-		obstacle.width = 10;
-		obstacle.height = 10;
-		
-		blackCheckRect = new Rectangle();
-		blackCheckRect.x = 800;
-		blackCheckRect.y = 50;
-		blackCheckRect.width = 64;
-		blackCheckRect.height = 64;
 
+		lvlTwoStopSigns.add(stop1);
+		lvlTwoStopSigns.add(stop2);
+		lvlTwoStopSigns.add(stop3);
+		
 		stopSigns = new Array<screenObject>();
 		obstacles = new Array<screenObject>();
 		successChk = new HashSet<screenObject>();
@@ -142,7 +140,7 @@ public class GameScreen implements Screen, InputProcessor {
 		game.batch.begin();
 		game.byFont.draw(game.batch, "Time passed: " + timeElapsing, 0, 480);
 		for(screenObject stopSignRect: stopSigns) {
-			game.batch.draw(blankStop, stopSignRect.x, stopSignRect.y, stopSignRect.width, stopSignRect.height);
+			game.batch.draw(stopSignRect.img, stopSignRect.x, stopSignRect.y, stopSignRect.width, stopSignRect.height);
 		}
 		
 		for(screenObject obstacle: obstacles) {
@@ -206,13 +204,22 @@ public class GameScreen implements Screen, InputProcessor {
 	}
 	
 	private void spawnStopSigns() {
-	      screenObject blank_stop = new screenObject(new Rectangle());
-	      blank_stop.setTexture(blankStop);
-	      blank_stop.x = MathUtils.random(0, 800 - 80);
-	      blank_stop.y = MathUtils.random(0, 480 - 80);
-	      blank_stop.width = MathUtils.random(60, 80);
-	      blank_stop.height = MathUtils.random(60, 80);
-	      stopSigns.add(blank_stop);
+	      screenObject stopsign = new screenObject(new Rectangle());
+	      Random randomizer = new Random();
+	      
+	      if (lvlRslt.gameLevel <= 2) {
+	    	  stopsign.setTexture(blankStop);
+	      } else if  (2 < lvlRslt.gameLevel && lvlRslt.gameLevel <= 4) {
+	    	  Texture randomSign = lvlTwoStopSigns.get(randomizer.nextInt(lvlTwoStopSigns.size()));
+	    	  stopsign.setTexture(randomSign);
+	      } else {
+	    	  stopsign.setTexture(stop4);
+	      }
+	      stopsign.x = MathUtils.random(0, 800 - 80);
+	      stopsign.y = MathUtils.random(0, 480 - 80);
+	      stopsign.width = MathUtils.random(60, 80);
+	      stopsign.height = MathUtils.random(60, 80);
+	      stopSigns.add(stopsign);
 //	      lastStopSign = TimeUtils.nanoTime();
    }
 	
